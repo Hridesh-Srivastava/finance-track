@@ -7,7 +7,7 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "Personal Finance Tracker",
+  title: "Blink-Bank",
   description: "Real-time personal finance tracking with AI-powered insights",
 }
 

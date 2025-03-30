@@ -21,7 +21,7 @@ export function AboutSection() {
           <div>
             <h3 className="text-2xl font-bold mb-4">Our Story</h3>
             <p className="text-muted-foreground mb-6">
-              Finance Tracker was founded in 2023 with a simple mission: to make personal finance management accessible
+              Blink-Bank was founded in 2025 with a simple mission: to make personal finance management accessible
               to everyone. We noticed that while there were many financial tools available, most were either too complex
               or didn't provide actionable insights.
             </p>
@@ -49,7 +49,7 @@ export function AboutSection() {
               <div key={index} className="flex flex-col items-center text-center">
                 <div className="w-24 h-24 rounded-full bg-muted mb-4 overflow-hidden">
                   <img
-                    src={`/placeholder.svg?height=96&width=96&text=${member.name.charAt(0)}`}
+                    src={member.image}
                     alt={member.name}
                     className="w-full h-full object-cover"
                   />
@@ -90,20 +90,23 @@ const values = [
 
 const team = [
   {
-    name: "Alex Johnson",
+    name: "Sameer Chavan",
     role: "CEO & Founder",
+    image: "/ceo1.jpg" 
   },
   {
-    name: "Sarah Chen",
+    name: "Priyanshu Sharma",
     role: "CTO",
+    image: "/cto.jpg"
   },
   {
-    name: "Michael Rodriguez",
+    name: "Hridesh Srivastava",
     role: "Head of Finance",
+    image: "/member3.jpg"
   },
   {
-    name: "Emily Williams",
+    name: "Harsh Dhami",
     role: "Lead Designer",
+    image: "/desig.jpg"
   },
 ]
-

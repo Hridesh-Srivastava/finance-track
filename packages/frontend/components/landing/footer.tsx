@@ -8,32 +8,24 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
           <div className="col-span-2">
             <div className="flex items-center gap-2 font-bold text-xl mb-4">
-              <span className="text-primary">Finance</span>Tracker
+              <span className="text-primary">Blink-Bank</span>
             </div>
             <p className="text-muted-foreground mb-4 max-w-xs">
               Take control of your finances with real-time insights, AI-powered analysis, and interactive
               visualizations.
             </p>
             <div className="flex space-x-4">
-              <Link href="#" className="text-muted-foreground hover:text-foreground">
+              <Link href="https://www.facebook.com/@SRHUOfficial/" className="text-muted-foreground hover:text-foreground">
                 <Facebook className="h-5 w-5" />
                 <span className="sr-only">Facebook</span>
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground">
-                <Twitter className="h-5 w-5" />
-                <span className="sr-only">Twitter</span>
-              </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground">
+              <Link href="https://www.instagram.com/srhusocial/?hl=en" className="text-muted-foreground hover:text-foreground">
                 <Instagram className="h-5 w-5" />
                 <span className="sr-only">Instagram</span>
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground">
+              <Link href="https://www.linkedin.com/school/s-r-h-u/?originalSubdomain=in" className="text-muted-foreground hover:text-foreground">
                 <Linkedin className="h-5 w-5" />
                 <span className="sr-only">LinkedIn</span>
-              </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground">
-                <Github className="h-5 w-5" />
-                <span className="sr-only">GitHub</span>
               </Link>
             </div>
           </div>
@@ -55,40 +47,10 @@ export function Footer() {
                   Integrations
                 </Link>
               </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Changelog
-                </Link>
-              </li>
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-4">Resources</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Documentation
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Help Center
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Community
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-4">Company</h3>
+          <h3 className="font-semibold mb-4">Company</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="#about" className="text-muted-foreground hover:text-foreground">
@@ -105,26 +67,23 @@ export function Footer() {
                   Careers
                 </Link>
               </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground">
-                  Legal
-                </Link>
-              </li>
             </ul>
+          </div>
+          <div>
           </div>
         </div>
         <div className="mt-12 border-t pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Finance Tracker. All rights reserved.
+            © {new Date().getFullYear()} Blink-Bank. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link href="https://www.capriloans.in/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground">
               Privacy Policy
             </Link>
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link href="https://financialservices.gov.in/beta/en/terms-of-use" className="text-sm text-muted-foreground hover:text-foreground">
               Terms of Service
             </Link>
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link href="https://www.sc.com/en/cookie-policy/" className="text-sm text-muted-foreground hover:text-foreground">
               Cookie Policy
             </Link>
           </div>

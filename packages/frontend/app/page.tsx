@@ -15,7 +15,7 @@ export default function Home() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold">
-            <span className="text-primary">Finance</span>Tracker
+            <span className="text-primary">Blink-Bank</span>
           </Link>
           <nav className="hidden md:flex gap-6">
             <Link href="#features" className="text-muted-foreground hover:text-foreground transition-colors">

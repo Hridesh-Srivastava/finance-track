@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { db } from "@/lib/firebase"; // Import your Firestore instance
+import { db } from "@/lib/firebase"; 
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 export function ContactSection() {
@@ -29,7 +29,7 @@ export function ContactSection() {
     setResponse(null);
 
     try {
-      // Add document to Firestore
+     
       await addDoc(collection(db, "contactSubmissions"), {
         ...formData,
         createdAt: serverTimestamp(),
@@ -41,7 +41,7 @@ export function ContactSection() {
         message: "Thank you! Your message has been sent successfully.",
       });
 
-      // Reset form
+      
       setFormData({
         name: "",
         email: "",
@@ -153,9 +153,11 @@ export function ContactSection() {
               <div>
                 <h4 className="font-bold">Our Location</h4>
                 <p className="text-muted-foreground mt-1">
-                  123 Finance Street
+                Swami Rama Himalayan University
                   <br />
-                  San Francisco, CA 94107
+                  Jolly Grant, Dehradun
+                  <br />
+                  Uttarakhand, India - 248016
                 </p>
               </div>
             </div>
@@ -164,9 +166,9 @@ export function ContactSection() {
               <div>
                 <h4 className="font-bold">Email Us</h4>
                 <p className="text-muted-foreground mt-1">
-                  support@financetracker.com
+                info@srhu.edu.in
                   <br />
-                  info@financetracker.com
+                  sshset2013@gmail.com
                 </p>
               </div>
             </div>
@@ -175,9 +177,13 @@ export function ContactSection() {
               <div>
                 <h4 className="font-bold">Call Us</h4>
                 <p className="text-muted-foreground mt-1">
-                  +1 (555) 123-4567
-                  <br />
-                  Mon-Fri, 9am-5pm PT
+                01352471266
+                    <br />
+                     Monday - Friday: 9:00 AM - 5:00 PM
+                    <br />
+                    Saturday: 9:00 AM - 1:00 PM
+                    <br />
+                    Sunday: Closed
                 </p>
               </div>
             </div>
