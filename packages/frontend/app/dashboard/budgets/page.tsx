@@ -1,10 +1,18 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore"
+import { 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  addDoc, 
+  deleteDoc, 
+  doc, 
+  serverTimestamp,
+  orderBy
+} from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { useAuth } from "@/context/auth-context"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
@@ -25,8 +33,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { PlusCircle, Trash2 } from "lucide-react"
-import { TRANSACTION_CATEGORIES, formatCurrency } from "@finance-tracker/shared"
-import { format } from "date-fns"
+import { TRANSACTION_CATEGORIES, formatCurrency } from "@/lib/shared"
+import { format, startOfMonth } from "date-fns"
 
 interface Budget {
   id: string
@@ -55,16 +63,17 @@ export default function BudgetsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [formError, setFormError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // New budget form state
   const [newBudget, setNewBudget] = useState({
     category: "",
     amount: "",
-    period: "monthly" as "daily" | "weekly" | "monthly" | "yearly",
+    period: "monthly" as const,
     startDate: format(new Date(), "yyyy-MM-dd"),
   })
-  const [formError, setFormError] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const currentMonthStart = startOfMonth(new Date())
 
   useEffect(() => {
     if (!loading && !user) {
@@ -73,81 +82,83 @@ export default function BudgetsPage() {
     }
 
     if (user) {
-      fetchBudgets()
-      fetchTransactions()
+      fetchData()
     }
   }, [user, loading, router])
 
-  const fetchBudgets = async () => {
+  const fetchBudgets = useCallback(async () => {
     if (!user) return
 
-    setIsLoading(true)
     try {
-      const q = query(collection(db, "budgets"), where("userId", "==", user.uid))
+      const q = query(
+        collection(db, "budgets"),
+        where("userId", "==", user.uid),
+        orderBy("createdAt", "desc")
+      )
 
       const querySnapshot = await getDocs(q)
-      const fetchedBudgets: Budget[] = []
-
-      querySnapshot.forEach((doc) => {
-        fetchedBudgets.push({
-          id: doc.id,
-          ...(doc.data() as Omit<Budget, "id">),
-        })
-      })
+      const fetchedBudgets = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Budget[]
 
       setBudgets(fetchedBudgets)
     } catch (error) {
       console.error("Error fetching budgets:", error)
-    } finally {
-      setIsLoading(false)
+      throw error
     }
-  }
+  }, [user])
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     if (!user) return
 
     try {
-      // Get transactions for the current month
-      const startOfMonth = new Date()
-      startOfMonth.setDate(1)
-      startOfMonth.setHours(0, 0, 0, 0)
-
       const q = query(
         collection(db, "transactions"),
         where("userId", "==", user.uid),
-        where("date", ">=", startOfMonth.toISOString().split("T")[0]),
         where("type", "==", "expense"),
+        orderBy("date", "desc")
       )
 
       const querySnapshot = await getDocs(q)
-      const fetchedTransactions: Transaction[] = []
-
-      querySnapshot.forEach((doc) => {
-        fetchedTransactions.push({
+      const fetchedTransactions = querySnapshot.docs
+        .map(doc => ({
           id: doc.id,
-          ...(doc.data() as Omit<Transaction, "id">),
-        })
-      })
+          ...doc.data()
+        }))
+        .filter(t => new Date(t.date) >= currentMonthStart) as Transaction[]
 
       setTransactions(fetchedTransactions)
     } catch (error) {
       console.error("Error fetching transactions:", error)
+      throw error
     }
-  }
+  }, [user, currentMonthStart])
+
+  const fetchData = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      await Promise.all([fetchBudgets(), fetchTransactions()])
+    } catch (error) {
+      console.error("Error fetching data:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [fetchBudgets, fetchTransactions])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setNewBudget({
-      ...newBudget,
+    setNewBudget(prev => ({
+      ...prev,
       [name]: value,
-    })
+    }))
   }
 
   const handleSelectChange = (name: string, value: string) => {
-    setNewBudget({
-      ...newBudget,
+    setNewBudget(prev => ({
+      ...prev,
       [name]: value,
-    })
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -159,7 +170,8 @@ export default function BudgetsPage() {
       return
     }
 
-    if (!newBudget.amount || isNaN(Number(newBudget.amount)) || Number(newBudget.amount) <= 0) {
+    const amount = Number(newBudget.amount)
+    if (!newBudget.amount || isNaN(amount) || amount <= 0) {
       setFormError("Please enter a valid amount")
       return
     }
@@ -170,24 +182,20 @@ export default function BudgetsPage() {
       await addDoc(collection(db, "budgets"), {
         userId: user?.uid,
         category: newBudget.category,
-        amount: Number(newBudget.amount),
+        amount,
         period: newBudget.period,
         startDate: newBudget.startDate,
         createdAt: serverTimestamp(),
       })
 
-      // Reset form and close dialog
       setNewBudget({
         category: "",
         amount: "",
         period: "monthly",
         startDate: format(new Date(), "yyyy-MM-dd"),
       })
-
       setIsDialogOpen(false)
-
-      // Refresh budgets
-      fetchBudgets()
+      await fetchData()
     } catch (error) {
       console.error("Error adding budget:", error)
       setFormError("Failed to add budget. Please try again.")
@@ -197,21 +205,18 @@ export default function BudgetsPage() {
   }
 
   const handleDeleteBudget = async (budgetId: string) => {
-    if (!confirm("Are you sure you want to delete this budget?")) {
-      return
-    }
+    if (!confirm("Are you sure you want to delete this budget?")) return
 
     try {
       await deleteDoc(doc(db, "budgets", budgetId))
-      fetchBudgets()
+      setBudgets(prev => prev.filter(b => b.id !== budgetId))
     } catch (error) {
       console.error("Error deleting budget:", error)
     }
   }
 
-  // Calculate budget progress
-  const calculateBudgetProgress = (budget: Budget) => {
-    const categoryTransactions = transactions.filter((t) => t.category === budget.category)
+  const calculateBudgetProgress = useCallback((budget: Budget) => {
+    const categoryTransactions = transactions.filter(t => t.category === budget.category)
     const totalSpent = categoryTransactions.reduce((sum, t) => sum + t.amount, 0)
     const progress = Math.min(Math.round((totalSpent / budget.amount) * 100), 100)
 
@@ -221,6 +226,40 @@ export default function BudgetsPage() {
       remaining: Math.max(budget.amount - totalSpent, 0),
       isOverBudget: totalSpent > budget.amount,
     }
+  }, [transactions])
+
+  const budgetCategories = TRANSACTION_CATEGORIES.filter(c => c !== "Income")
+
+  if (isLoading) {
+    return (
+      <DashboardShell>
+        <DashboardHeader heading="Budgets" text="Set and track your spending limits by category.">
+          <Button disabled>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Budget
+          </Button>
+        </DashboardHeader>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i} className="flex flex-col">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="h-5 w-24 animate-pulse rounded bg-muted"></div>
+                  <div className="h-5 w-16 animate-pulse rounded bg-muted"></div>
+                </CardTitle>
+                <CardDescription>
+                  <div className="h-4 w-32 animate-pulse rounded bg-muted"></div>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1">
+                <div className="h-4 w-full animate-pulse rounded bg-muted mb-2"></div>
+                <div className="h-16 w-full animate-pulse rounded bg-muted"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </DashboardShell>
+    )
   }
 
   return (
@@ -243,12 +282,15 @@ export default function BudgetsPage() {
                 {formError && <div className="text-sm font-medium text-destructive">{formError}</div>}
                 <div className="grid gap-2">
                   <Label htmlFor="category">Category</Label>
-                  <Select value={newBudget.category} onValueChange={(value) => handleSelectChange("category", value)}>
+                  <Select 
+                    value={newBudget.category} 
+                    onValueChange={(value) => handleSelectChange("category", value)}
+                  >
                     <SelectTrigger id="category">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {TRANSACTION_CATEGORIES.filter((c) => c !== "Income").map((category) => (
+                      {budgetCategories.map((category) => (
                         <SelectItem key={category} value={category}>
                           {category}
                         </SelectItem>
@@ -273,9 +315,7 @@ export default function BudgetsPage() {
                   <Label htmlFor="period">Period</Label>
                   <Select
                     value={newBudget.period}
-                    onValueChange={(value) =>
-                      handleSelectChange("period", value as "daily" | "weekly" | "monthly" | "yearly")
-                    }
+                    onValueChange={(value) => handleSelectChange("period", value)}
                   >
                     <SelectTrigger id="period">
                       <SelectValue placeholder="Select period" />
@@ -313,25 +353,7 @@ export default function BudgetsPage() {
       </DashboardHeader>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i} className="flex flex-col">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="h-5 w-24 animate-pulse rounded bg-muted"></div>
-                  <div className="h-5 w-16 animate-pulse rounded bg-muted"></div>
-                </CardTitle>
-                <CardDescription>
-                  <div className="h-4 w-32 animate-pulse rounded bg-muted"></div>
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <div className="h-4 w-full animate-pulse rounded bg-muted mb-2"></div>
-                <div className="h-16 w-full animate-pulse rounded bg-muted"></div>
-              </CardContent>
-            </Card>
-          ))
-        ) : budgets.length > 0 ? (
+        {budgets.length > 0 ? (
           budgets.map((budget) => {
             const { spent, progress, remaining, isOverBudget } = calculateBudgetProgress(budget)
 
@@ -406,4 +428,3 @@ export default function BudgetsPage() {
     </DashboardShell>
   )
 }
-

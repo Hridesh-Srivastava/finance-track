@@ -170,7 +170,6 @@ export default function SettingsPage() {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="password">Password</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
@@ -287,57 +286,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Settings</CardTitle>
-              <CardDescription>Configure how you receive notifications</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="emailNotifications"
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    defaultChecked
-                  />
-                  <Label htmlFor="emailNotifications">Email Notifications</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="budgetAlerts"
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    defaultChecked
-                  />
-                  <Label htmlFor="budgetAlerts">Budget Alerts</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="weeklyReports"
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    defaultChecked
-                  />
-                  <Label htmlFor="weeklyReports">Weekly Summary Reports</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="unusualActivity"
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    defaultChecked
-                  />
-                  <Label htmlFor="unusualActivity">Unusual Activity Alerts</Label>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button>Save Notification Settings</Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
+        
       </Tabs>
     </DashboardShell>
   )

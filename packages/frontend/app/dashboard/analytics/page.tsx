@@ -5,18 +5,13 @@ import { useRouter } from "next/navigation"
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { useAuth } from "@/context/auth-context"
-import { DashboardHeader } from "@components/header/dashboard-header"
+import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  groupTransactionsByCategory,
-  calculateTotalByType,
-  calculateSavingsRate,
-  formatCurrency,
-} from "@finance-tracker/shared"
+import { groupTransactionsByCategory, calculateTotalByType, calculateSavingsRate, formatCurrency } from "@/lib/shared"
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 
 interface Transaction {

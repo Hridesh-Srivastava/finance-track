@@ -23,6 +23,20 @@ service cloud.firestore {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow write: if false; // Only allow writes from backend functions
     }
+    // Add these rules to your existing rules
+match /bankUsers/{accountNumber} {
+  allow read: if request.auth != null && 
+    accountNumber == request.auth.token.accountNumber;
+  allow create: if request.auth != null;
+  allow update: if request.auth != null && 
+    accountNumber == request.auth.token.accountNumber;
+}
+
+match /bankTransactions/{document=**} {
+  allow read: if request.auth != null && 
+    resource.data.accountNumber == request.auth.token.accountNumber;
+  allow create: if request.auth != null;
+}
     
     // Insights
     match /insights/{userId} {

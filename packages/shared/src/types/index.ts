@@ -65,4 +65,19 @@ export interface User {
     response: string
   }
   
+  export type BankUser = {
+    name: string
+    accountNumber: string
+    pin: string
+    balance: number
+  }
   
+  export type BankTransaction = {
+    id?: string
+    accountNumber: string
+    type: "deposit" | "withdrawal"
+    amount: number
+    balance: number
+    timestamp: Date
+    description: string
+  }

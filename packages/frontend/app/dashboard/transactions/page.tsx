@@ -25,8 +25,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { PlusCircle } from "lucide-react"
-import { TRANSACTION_CATEGORIES } from "@finance-tracker/shared"
-import { formatCurrency } from "@finance-tracker/shared"
+import { TRANSACTION_CATEGORIES, formatCurrency } from "@/lib/shared"
 import { format } from "date-fns"
 
 interface Transaction {
@@ -223,7 +222,7 @@ export default function TransactionsPage() {
                   <div className="grid gap-2">
                     <Label htmlFor="category">Category</Label>
                     <Select
-                      value={newTransaction.category}
+                      value={newTransaction.category || undefined}
                       onValueChange={(value) => handleSelectChange("category", value)}
                     >
                       <SelectTrigger id="category">
@@ -241,7 +240,7 @@ export default function TransactionsPage() {
                   <div className="grid gap-2">
                     <Label htmlFor="type">Type</Label>
                     <Select
-                      value={newTransaction.type}
+                      value={newTransaction.type || undefined}
                       onValueChange={(value) => handleSelectChange("type", value as "income" | "expense")}
                     >
                       <SelectTrigger id="type">

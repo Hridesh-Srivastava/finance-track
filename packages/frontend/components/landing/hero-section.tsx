@@ -1,15 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Chart } from "./chart"
-
-const chartData = [
-  { name: "Jan", amount: 2400 },
-  { name: "Feb", amount: 1800 },
-  { name: "Mar", amount: 2800 },
-  { name: "Apr", amount: 2200 },
-  { name: "May", amount: 3000 },
-  { name: "Jun", amount: 2500 },
-]
+import { SpendingVisualization } from "./spending-visualization"
 
 export function HeroSection() {
   return (
@@ -41,15 +32,7 @@ export function HeroSection() {
           </div>
           <div className="flex items-center justify-center">
             <div className="relative w-full h-[300px] md:h-[400px] lg:h-[500px] rounded-lg overflow-hidden bg-muted">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center p-6">
-                <div className="w-full h-full max-w-md">
-                  <h2 className="text-2xl font-bold mb-4 text-center">Visualize Your Spending</h2>
-                  <p className="text-center mb-6">
-                    Interactive charts and AI-powered insights help you understand where your money goes.
-                  </p>
-                  <Chart data={chartData} />
-                </div>
-              </div>
+              <SpendingVisualization />
             </div>
           </div>
         </div>
@@ -57,3 +40,4 @@ export function HeroSection() {
     </section>
   )
 }
+

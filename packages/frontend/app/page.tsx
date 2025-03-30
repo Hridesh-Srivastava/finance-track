@@ -33,6 +33,9 @@ export default function Home() {
             <Link href="#contact" className="text-muted-foreground hover:text-foreground transition-colors">
               Contact
             </Link>
+            <Link href="/newsletter" className="text-muted-foreground hover:text-foreground transition-colors">
+              Newsletter
+            </Link>
           </nav>
           <div className="flex items-center gap-4">
             <ThemeToggle />
