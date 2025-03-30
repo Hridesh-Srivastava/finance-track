@@ -1,0 +1,33 @@
+{
+  "name": "finance-tracker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev:frontend": "npm run dev --workspace=@finance-tracker/frontend",
+    "dev:backend": "npm run dev --workspace=@finance-tracker/backend",
+    "build:frontend": "npm run build --workspace=@finance-tracker/frontend",
+    "build:backend": "npm run build --workspace=@finance-tracker/backend",
+    "start:frontend": "npm run start --workspace=@finance-tracker/frontend",
+    "deploy:frontend": "npm run build:frontend && vercel --prod",
+    "deploy:backend": "npm run build:backend && firebase deploy --only functions",
+    "deploy": "npm run deploy:frontend && npm run deploy:backend",
+    "lint": "npm run lint --workspaces",
+    "test": "npm run test --workspaces"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "workspaces": [
+    "packages/*"
+  ],
+  "dependencies": {
+    "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
+    "@radix-ui/react-select": "^2.1.6"
+  },
+  "devDependencies": {
+    "eslint": "^9.23.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
+  }
+}
