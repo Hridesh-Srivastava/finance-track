@@ -2,6 +2,7 @@ import type React from "react";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { UserNav } from "@/components/dashboard/user-nav";
 import { ThemeToggle } from "@/components/theme-toggle"; // Import ThemeToggle component
+import Image from "next/image";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -12,17 +13,22 @@ export function DashboardShell({ children }: DashboardShellProps) {
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b bg-background">
         <div className="container flex h-16 items-center justify-between py-4">
-          {/* Left Section: Blink-Bank */}
+         
           <div className="flex items-center gap-2 font-bold">
+          <Image
+              src="/logo.jpg" 
+              alt="Website Logo"
+              width={40} 
+              height={40} 
+              className="rounded-full" 
+            />
             <span className="text-primary">Blink-Bank</span>
           </div>
 
-          {/* Right Section: ThemeToggle and UserNav */}
+          
           <div className="flex items-center gap-4">
-            {/* ThemeToggle */}
+           
             <ThemeToggle />
-
-            {/* UserNav */}
             <UserNav />
           </div>
         </div>

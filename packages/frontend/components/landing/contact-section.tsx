@@ -177,7 +177,7 @@ export function ContactSection() {
               <div>
                 <h4 className="font-bold">Call Us</h4>
                 <p className="text-muted-foreground mt-1">
-                01352471266
+                0000000000
                     <br />
                      Monday - Friday: 9:00 AM - 5:00 PM
                     <br />

@@ -1,13 +1,13 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Loader2, Send, Bot, User } from "lucide-react"
+import { useAuth } from "@/lib/auth" // Import auth context/hook
 
 interface Message {
   id: string
@@ -28,6 +28,7 @@ export function AIChatbot() {
   ])
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { user } = useAuth() // Get current user from auth context
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -51,13 +52,16 @@ export function AIChatbot() {
     setIsLoading(true)
 
     try {
-      // Call the API endpoint
+      // Call the API endpoint with authenticated userId
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: userMessage.content }),
+        body: JSON.stringify({
+          message: userMessage.content,
+          userId: user?.id || "anonymous", // Use authenticated user ID or fallback
+        }),
       })
 
       if (!response.ok) {
@@ -102,7 +106,7 @@ export function AIChatbot() {
   return (
     <Card className="flex flex-col h-full">
       <CardHeader>
-        <CardTitle>AI Financial Assistant</CardTitle>
+        <CardTitle>Blink-Bank Assistant</CardTitle>
         <CardDescription>Ask questions about your finances and get AI-powered insights</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto">
