@@ -26,7 +26,7 @@ except Exception as e:
 GEMINI_API_KEY = ""#(TO generate custom api u can use :> Get Free API Key From : 
                     # 1- go to https://aistudio.google.com/app/apikey
                     # 2- Click on "Get API Key" button
-                    # 3- Copy the API Key and paste it in the code below.)
+                    # 3- Copy the API Key and paste it in the quotes above.)
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
 
 class FinancialGeminiAgent:
