@@ -1,83 +1,54 @@
 import json
 import requests
 import time
-import os
 from datetime import datetime
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-from dotenv import load_dotenv
+import firebase_admin
+from firebase_admin import credentials, firestore
 
-# Load environment variables from .env file
-load_dotenv()
+# Initialize Firebase
+cred = credentials.Certificate("blinkbank-4c28c-firebase-adminsdk-fbsvc-1b4a55a273.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
-# Import Firebase modules (will only be used if Firebase is available)
-try:
-    import firebase_admin
-    from firebase_admin import credentials, firestore
-    FIREBASE_AVAILABLE = True
-except ImportError:
-    FIREBASE_AVAILABLE = False
-    print("Firebase modules not available. Running without Firebase integration.")
+# Configuration
+GEMINI_API_KEY = ""
+GEMINI_API_URL = ""
 
-# Configuration - Get from environment variables
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-GEMINI_API_URL = os.environ.get("GEMINI_API_URL", "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent")
-
-# Check if API key is available
-if not GEMINI_API_KEY:
-    print("WARNING: GEMINI_API_KEY not found in environment variables!")
-
-class FetchAIGeminiAgent:
-    def __init__(self, name: str, description: str):
-        self.name = name
-        self.description = description
+class FinancialGeminiAgent:
+    def __init__(self):
+        self.name = "Advanced Financial Analyst"
+        self.description = "AI assistant analyzing transaction data with enhanced schema"
         self.conversation_history = []
         self.transaction_data = []
         self.last_refresh = None
-        self.system_prompt = f"""
-        You are {name}, an AI assistant. {description}
-        """
         
-        # Initialize Firebase if available
-        self.db = None
-        if FIREBASE_AVAILABLE:
-            try:
-                # Check if Firebase is already initialized
-                if not firebase_admin._apps:
-                    # Try to initialize with the service account file
-                    try:
-                        cred = credentials.Certificate("blinkbank-4c28c-firebase-adminsdk-fbsvc-1b4a55a273.json")
-                        firebase_admin.initialize_app(cred)
-                    except Exception as e:
-                        print(f"Error initializing Firebase with credentials: {e}")
-                        print("Attempting to initialize Firebase with default credentials...")
-                        firebase_admin.initialize_app()
-                
-                self.db = firestore.client()
-                print("Firebase Firestore initialized successfully")
-            except Exception as e:
-                print(f"Failed to initialize Firebase: {e}")
+        self.system_prompt = f"""
+        You are {self.name}, analyzing financial transactions with this schema:
+        - amount: Integer value of transaction
+        - category: Spending category (e.g., Food, Utilities)
+        - type: Transaction type (Income/Expense)
+        - userId: Unique user identifier
+        - date: Transaction date (YYYY-MM-DD)
+        
+        Response guidelines:
+        1. Start with relevant emoji (💰,📊,🛒,💸)
+        2. Highlight amounts and categories
+        3. Compare income vs expenses
+        4. Keep responses under 3 sentences
+        """
 
     def refresh_transactions(self):
-        """Fetch latest transactions from Firestore if available"""
-        if not self.db or not FIREBASE_AVAILABLE:
-            return
-            
-        if not self.last_refresh or (time.time() - self.last_refresh) > 300:  # Refresh every 5 minutes
-            print("🔄 Refreshing transaction data from Firebase...")
-            try:
-                docs = self.db.collection("transactions").stream()
-                self.transaction_data = [doc.to_dict() for doc in docs]
-                self.last_refresh = time.time()
-                print(f"✅ Loaded {len(self.transaction_data)} transactions from Firebase")
-            except Exception as e:
-                print(f"Error fetching transactions: {e}")
+        """Fetch latest transactions from Firestore"""
+        if not self.last_refresh or (time.time() - self.last_refresh) > 300:
+            print("🔄 Refreshing transaction data...")
+            docs = db.collection("transactions").stream()
+            self.transaction_data = [doc.to_dict() for doc in docs]
+            self.last_refresh = time.time()
+            print(f"✅ Loaded {len(self.transaction_data)} transactions")
 
     def analyze_transactions(self):
-        """Generate enhanced data summary if transaction data is available"""
-        if not self.transaction_data:
-            return ""
-            
+        """Generate enhanced data summary"""
         summary = {
             "total_income": 0,
             "total_expenses": 0,
@@ -115,109 +86,53 @@ class FetchAIGeminiAgent:
         - Recent Transactions: {json.dumps(summary['recent'], indent=2)}
         """
 
-    def save_conversation(self, user_id, user_message, ai_response):
-        """Save conversation to Firebase if available"""
-        if not self.db or not FIREBASE_AVAILABLE:
-            return
-            
-        try:
-            # Create a conversation document
-            conversation_ref = self.db.collection("conversations").document()
-            conversation_ref.set({
-                "userId": user_id,
-                "userMessage": user_message,
-                "aiResponse": ai_response,
-                "timestamp": firestore.SERVER_TIMESTAMP
-            })
-            print(f"Conversation saved to Firebase with ID: {conversation_ref.id}")
-        except Exception as e:
-            print(f"Error saving conversation to Firebase: {e}")
-
-    def get_gemini_response(self, user_message: str, user_id: str = "anonymous") -> str:
-        """Get a response from the Gemini API with financial context if available"""
-        self.conversation_history.append({"role": "user", "content": user_message})
-        
-        # Refresh transaction data if Firebase is available
+    def generate_response(self, user_input: str) -> str:
+        """Process query with financial analysis"""
         self.refresh_transactions()
+        data_context = self.analyze_transactions()
         
-        # Get financial context if available
-        financial_context = self.analyze_transactions()
+        prompt = f"""
+        {self.system_prompt}
         
-        full_prompt = self.system_prompt + "\n\n"
+        {data_context}
         
-        # Add financial context if available
-        if financial_context:
-            full_prompt += f"Financial Context:\n{financial_context}\n\n"
-            
-        # Add conversation history
-        for message in self.conversation_history[-10:]:
-            full_prompt += f"{message['role'].capitalize()}: {message['content']}\n"
+        User Query: {user_input}
+        
+        Required Format:
+        answer correctly on the basis of present data and finance also about the similar topics
+        """
 
         try:
             response = requests.post(
                 f"{GEMINI_API_URL}?key={GEMINI_API_KEY}",
                 headers={"Content-Type": "application/json"},
-                data=json.dumps({"contents": [{"parts": [{"text": full_prompt}]}]})
+                json={"contents": [{"parts": [{"text": prompt}]}]}
             )
-            data = response.json()
-            if "candidates" in data and data["candidates"]:
-                text = data["candidates"][0]["content"]["parts"][0]["text"]
-                self.conversation_history.append({"role": "agent", "content": text})
-                
-                # Save conversation to Firebase
-                self.save_conversation(user_id, user_message, text)
-                
-                return text
-            return "No response from Gemini API."
+            response.raise_for_status()
+            return response.json()["candidates"][0]["content"]["parts"][0]["text"]
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"⚠️ Error: {str(e)}"
 
-    def connect_to_fetch_network(self, network_url: str):
-        """Simulate connecting to the Fetch.ai network"""
-        print(f"Connecting to Fetch.ai network at {network_url}...")
-        time.sleep(1)  # Simulated connection delay
-        print(f"Agent {self.name} successfully connected to Fetch.ai network.")
-        return True
-
-# Create Flask web application
+# Flask Application
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+agent = FinancialGeminiAgent()
 
-# Instantiate the agent
-agent = FetchAIGeminiAgent(
-    name="FetchGeminiAgent",
-    description="I am an AI-powered financial assistant running on the Fetch.ai network. I analyze real-time transaction data, provide financial insights, answer queries, and generate interactive expenditure breakdowns."
-)
+@app.route("/")
+def home():
+    return "Financial Analyst API - POST /chat with {'message': 'your query'}"
 
-# Simulate connecting to the Fetch.ai network
-agent.connect_to_fetch_network("https://network.fetch.ai")
-
-# Define a simple index route
-@app.route("/", methods=["GET"])
-def index():
-    return "Welcome to the Fetch.ai Gemini Agent API. Use the /api/chat endpoint to interact with the agent."
-
-# Define the chat API endpoint
-@app.route("/api/chat", methods=["POST"])
+@app.route("/chat", methods=["POST"])
 def chat():
-    data = request.json
-    user_message = data.get("message", "")
-    user_id = data.get("userId", "anonymous")
+    data = request.get_json()
+    if not data or "message" not in data:
+        return jsonify({"error": "Missing message parameter"}), 400
     
-    if not user_message:
-        return jsonify({"error": "No message provided"}), 400
-    
-    # Get response from the agent
-    response_text = agent.get_gemini_response(user_message, user_id)
-    
+    response = agent.generate_response(data["message"])
     return jsonify({
-        "response": response_text,
-        "firebase_enabled": FIREBASE_AVAILABLE,
-        "transactions_loaded": len(agent.transaction_data) if hasattr(agent, "transaction_data") else 0
+        "query": data["message"],
+        "response": response,
+        "last_updated": agent.last_refresh
     })
 
 if __name__ == "__main__":
-    # Get port from environment variable or use default
-    port = int(os.environ.get("PORT", 5010))
-    # Run the Flask app
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(port=5010, debug=True)
