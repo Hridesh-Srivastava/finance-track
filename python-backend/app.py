@@ -13,7 +13,7 @@ CORS(app)  # Enable CORS for all routes
 
 # Initialize Firebase
 try:
-    cred = credentials.Certificate("blinkbank-33c23-firebase-adminsdk-fbsvc-d8ac7d7d82.json")
+    cred = credentials.Certificate("blinkbank-33$#$23-firebase-adminsdk-fbsvc-d8ac7d7d82.json")
     firebase_admin.initialize_app(cred)
     db = firestore.client()
     print("✅ Firebase initialized successfully")
