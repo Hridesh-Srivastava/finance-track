@@ -5,6 +5,10 @@ import os
 from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Import Firebase modules (will only be used if Firebase is available)
 try:
@@ -15,9 +19,13 @@ except ImportError:
     FIREBASE_AVAILABLE = False
     print("Firebase modules not available. Running without Firebase integration.")
 
-# Configuration
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyCkG1VdR93aeUt8Es728Zb0PQydBvcXa6U")
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
+# Configuration - Get from environment variables
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+GEMINI_API_URL = os.environ.get("GEMINI_API_URL", "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent")
+
+# Check if API key is available
+if not GEMINI_API_KEY:
+    print("WARNING: GEMINI_API_KEY not found in environment variables!")
 
 class FetchAIGeminiAgent:
     def __init__(self, name: str, description: str):
