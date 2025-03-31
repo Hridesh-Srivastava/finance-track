@@ -1,4 +1,4 @@
-# BLINK BANK - AI-Powered Financial Management System
+# BLINK-BANK - AI-Powered Financial Management System
 
 ## Overview
 
