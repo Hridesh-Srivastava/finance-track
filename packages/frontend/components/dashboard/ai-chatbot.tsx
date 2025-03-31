@@ -75,7 +75,7 @@ export function AIChatbot() {
       // Create assistant message
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.response,
+        content: data.response || "Sorry, I couldn't process your request.",
         role: "assistant",
         timestamp: new Date(),
       }
@@ -93,7 +93,7 @@ export function AIChatbot() {
         ...prev,
         {
           id: (Date.now() + 1).toString(),
-          content: `Error: ${errorMessage}. Make sure the Python backend is running on port 5010.`,
+          content: `Error: Failed to process request. Make sure the Python backend is running on port 5010.`,
           role: "assistant",
           timestamp: new Date(),
         },

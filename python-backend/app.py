@@ -2,23 +2,37 @@ import json
 import requests
 import time
 from datetime import datetime
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
+from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore
 
+# Initialize Flask app
+app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
+
 # Initialize Firebase
-cred = credentials.Certificate("blinkbank-4c28c-firebase-adminsdk-fbsvc-1b4a55a273.json")
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+try:
+    cred = credentials.Certificate("blinkbank-33c23-firebase-adminsdk-fbsvc-d8ac7d7d82.json")
+    firebase_admin.initialize_app(cred)
+    db = firestore.client()
+    print("✅ Firebase initialized successfully")
+except Exception as e:
+    print(f"⚠️ Firebase initialization error: {str(e)}")
+    # Continue without Firebase for development purposes
+    db = None
 
 # Configuration
-GEMINI_API_KEY = ""
-GEMINI_API_URL = ""
+GEMINI_API_KEY = ""#(TO generate custom api u can use :> Get Free API Key From : 
+                    # 1- go to https://aistudio.google.com/app/apikey
+                    # 2- Click on "Get API Key" button
+                    # 3- Copy the API Key and paste it in the code below.)
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
 
 class FinancialGeminiAgent:
     def __init__(self):
-        self.name = "Advanced Financial Analyst"
-        self.description = "AI assistant analyzing transaction data with enhanced schema"
+        self.name = "Advanced Financial Analyst Blink-Bank Ai Agent"
+        self.description = "AI assistant analyzing transaction data with enhanced schema and help with General queries"
         self.conversation_history = []
         self.transaction_data = []
         self.last_refresh = None
@@ -30,22 +44,35 @@ class FinancialGeminiAgent:
         - type: Transaction type (Income/Expense)
         - userId: Unique user identifier
         - date: Transaction date (YYYY-MM-DD)
-        
-        Response guidelines:
-        1. Start with relevant emoji (💰,📊,🛒,💸)
-        2. Highlight amounts and categories
-        3. Compare income vs expenses
-        4. Keep responses under 3 sentences
         """
 
     def refresh_transactions(self):
         """Fetch latest transactions from Firestore"""
+        if not db:
+            print("⚠️ Firebase not initialized, using sample data")
+            self.transaction_data = [
+                {"amount": 5000, "category": "Salary", "type": "Income", "userId": "user1", "date": "2025-03-30"},
+                {"amount": 120, "category": "Food", "type": "Expense", "userId": "user1", "date": "2025-03-29"},
+                {"amount": 200, "category": "Utilities", "type": "Expense", "userId": "user1", "date": "2025-03-28"}
+            ]
+            self.last_refresh = time.time()
+            return
+
         if not self.last_refresh or (time.time() - self.last_refresh) > 300:
             print("🔄 Refreshing transaction data...")
-            docs = db.collection("transactions").stream()
-            self.transaction_data = [doc.to_dict() for doc in docs]
-            self.last_refresh = time.time()
-            print(f"✅ Loaded {len(self.transaction_data)} transactions")
+            try:
+                docs = db.collection("transactions").stream()
+                self.transaction_data = [doc.to_dict() for doc in docs]
+                self.last_refresh = time.time()
+                print(f"✅ Loaded {len(self.transaction_data)} transactions")
+            except Exception as e:
+                print(f"⚠️ Error loading transactions: {str(e)}")
+                # Use sample data as fallback
+                self.transaction_data = [
+                    {"amount": 5000, "category": "Salary", "type": "Income", "userId": "user1", "date": "2025-03-30"},
+                    {"amount": 120, "category": "Food", "type": "Expense", "userId": "user1", "date": "2025-03-29"},
+                    {"amount": 200, "category": "Utilities", "type": "Expense", "userId": "user1", "date": "2025-03-28"}
+                ]
 
     def analyze_transactions(self):
         """Generate enhanced data summary"""
@@ -86,20 +113,23 @@ class FinancialGeminiAgent:
         - Recent Transactions: {json.dumps(summary['recent'], indent=2)}
         """
 
-    def generate_response(self, user_input: str) -> str:
+    def generate_response(self, user_input: str, user_id: str = "anonymous") -> str:
         """Process query with financial analysis"""
         self.refresh_transactions()
         data_context = self.analyze_transactions()
         
         prompt = f"""
         {self.system_prompt}
-        
+
+        Transaction Data Analysis:
+
         {data_context}
-        
+
+        User ID: {user_id}
         User Query: {user_input}
-        
-        Required Format:
-        answer correctly on the basis of present data and finance also about the similar topics
+
+        ### Expected Response Format:
+        answer as per the response
         """
 
         try:
@@ -114,7 +144,6 @@ class FinancialGeminiAgent:
             return f"⚠️ Error: {str(e)}"
 
 # Flask Application
-app = Flask(__name__)
 agent = FinancialGeminiAgent()
 
 @app.route("/")
@@ -123,16 +152,33 @@ def home():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    data = request.get_json()
-    if not data or "message" not in data:
-        return jsonify({"error": "Missing message parameter"}), 400
-    
-    response = agent.generate_response(data["message"])
-    return jsonify({
-        "query": data["message"],
-        "response": response,
-        "last_updated": agent.last_refresh
-    })
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid JSON"}), 400
+            
+        message = data.get("message")
+        user_id = data.get("userId", "anonymous")
+        
+        if not message:
+            return jsonify({"error": "Missing message parameter"}), 400
+        
+        response = agent.generate_response(message, user_id)
+        
+        return jsonify({
+            "query": message,
+            "response": response,
+            "last_updated": agent.last_refresh,
+            "status": "success"
+        })
+    except Exception as e:
+        print(f"Error in chat endpoint: {str(e)}")
+        return jsonify({
+            "error": "Failed to process request",
+            "details": str(e)
+        }), 500
 
 if __name__ == "__main__":
+    print("🚀 Starting Financial Analyst API on port 5010")
     app.run(port=5010, debug=True)
+
