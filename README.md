@@ -1,5 +1,6 @@
 # BLINK-BANK - AI-Powered Financial Management System
 <img src="https://raw.githubusercontent.com/Hridesh-Srivastava/finance-track/main/images/front1.png" alt="Image Description" />
+
 ## Overview
 
 BLINK BANK is an intelligent financial management system that helps users track transactions, monitor spending, and manage their finances efficiently. The application leverages AI technology to provide real-time financial insights, interactive analytics, and natural language query capabilities.
