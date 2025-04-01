@@ -39,7 +39,7 @@ Check out our demo video to see BLINK-BANK in action:
   - Recharts (for data visualization)
 
 ## System Architecture
-
+<img src="https://raw.githubusercontent.com/Hridesh-Srivastava/finance-track/main/images/back2.png" alt="Image Description" />
 The application follows a structured workflow:
 
 1. **User Registration & Login**:
