@@ -10,8 +10,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 })
     }
 
-    // Call the Python API - Updated port to 5010
-    const pythonApiResponse = await fetch("http://localhost:5010/chat", {
+    // Use environment variable for Python API URL
+    const pythonApiUrl = process.env.PYTHON_API_URL || "http://localhost:5010"
+    
+    // Call the Python API
+    const pythonApiResponse = await fetch(`${pythonApiUrl}/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -36,4 +39,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

@@ -1,11 +1,16 @@
 import json
 import requests
 import time
+import os
 from datetime import datetime
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -13,7 +18,7 @@ CORS(app)  # Enable CORS for all routes
 
 # Initialize Firebase
 try:
-    cred = credentials.Certificate("blinkbank-33$#$23-firebase-adminsdk-fbsvc-d8ac7d7d82.json")
+    cred = credentials.Certificate(os.getenv("blinkbank-33c23-firebase-adminsdk-fbsvc-d8ac7d7d82.json"))
     firebase_admin.initialize_app(cred)
     db = firestore.client()
     print("✅ Firebase initialized successfully")
@@ -22,12 +27,17 @@ except Exception as e:
     # Continue without Firebase for development purposes
     db = None
 
-# Configuration
-GEMINI_API_KEY = ""#(TO generate custom api u can use :> Get Free API Key From : 
+# Configuration from environment variables
+#(TO generate custom api u can use :> Get Free API Key From : 
                     # 1- go to https://aistudio.google.com/app/apikey
                     # 2- Click on "Get API Key" button
-                    # 3- Copy the API Key and paste it in the quotes above.)
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
+                    # 3- Copy the API Key and paste it in your python-backend environment variables.)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_API_URL = os.getenv("GEMINI_API_URL", "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent")
+
+# Validate required environment variables
+if not GEMINI_API_KEY:
+    print("⚠️ Warning: GEMINI_API_KEY environment variable is not set")
 
 class FinancialGeminiAgent:
     def __init__(self):
@@ -181,4 +191,3 @@ def chat():
 if __name__ == "__main__":
     print("🚀 Starting Financial Analyst API on port 5010")
     app.run(port=5010, debug=True)
-
