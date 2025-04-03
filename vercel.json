@@ -1,0 +1,18 @@
+{
+    "buildCommand": "cd packages/frontend && npm run build",
+    "outputDirectory": "packages/frontend/.next",
+    "installCommand": "npm install",
+    "framework": "nextjs",
+    "rewrites": [
+      {
+        "source": "/api/chat/:path*",
+        "destination": "/api/chat/:path*"
+      },
+      {
+        "source": "/api/:path*",
+        "destination": "https://$PYTHON_API_URL/:path*"
+      }
+    ]
+  }
+  
+  
