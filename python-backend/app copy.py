@@ -16,40 +16,16 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Initialize Firebase with flexible credential sources
+# Initialize Firebase
 try:
-    cred = None
-    # 1. Base64 JSON via FIREBASE_CREDENTIALS_BASE64
-    b64_json = os.getenv("FIREBASE_CREDENTIALS_BASE64")
-    if b64_json:
-        import base64, tempfile
-        try:
-            decoded = base64.b64decode(b64_json)
-            tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".json")
-            tmp.write(decoded)
-            tmp.flush()
-            cred = credentials.Certificate(tmp.name)
-            print("🔐 Loaded Firebase credentials from base64 env var")
-        except Exception as inner_e:
-            print(f"⚠️ Failed decoding base64 credentials: {inner_e}")
-
-    # 2. Fallback to file path
-    if not cred:
-        path = os.getenv("FIREBASE_CREDENTIALS_PATH")
-        if path and os.path.isfile(path):
-            cred = credentials.Certificate(path)
-            print("📄 Loaded Firebase credentials from file path")
-
-    # 3. Initialize if credential available
-    if cred:
-        firebase_admin.initialize_app(cred)
-        db = firestore.client()
-        print("✅ Firebase initialized successfully")
-    else:
-        raise RuntimeError("No valid Firebase credentials provided (set FIREBASE_CREDENTIALS_BASE64 or FIREBASE_CREDENTIALS_PATH)")
+    cred = credentials.Certificate(os.getenv("FIREBASE_CREDENTIALS_PATH"))
+    firebase_admin.initialize_app(cred)
+    db = firestore.client()
+    print("✅ Firebase initialized successfully")
 except Exception as e:
     print(f"⚠️ Firebase initialization error: {str(e)}")
-    db = None  # continue in degraded mode
+    # Continue without Firebase for development purposes
+    db = None
 
 # Configuration from environment variables
 #(TO generate custom api u can use :> Get Free API Key From : 
